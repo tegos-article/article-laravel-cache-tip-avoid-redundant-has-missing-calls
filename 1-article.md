@@ -1,7 +1,6 @@
 # Laravel Cache Tip: Avoid Redundant has/missing Calls
 
-When working with Laravel's cache, I often see developers using a pattern that, while functional, creates unnecessary
-overhead. Let me show you a simple optimization that can improve both performance and memory usage.
+When working with Laravel's cache, I often see developers using a pattern that, while functional, creates unnecessary overhead. Let me show you a simple optimization that can improve both performance and memory usage.
 
 ## The Common Pattern (With Redundancy)
 
@@ -13,6 +12,7 @@ public function getUserCount(): int
     $cacheKey = 'user-count';
     $cacheTtl = Carbon::now()->addMinutes(10);
 
+    // Bad: two cache ops
     if (Cache::has($cacheKey)) {
         return (int) Cache::get($cacheKey);
     }
@@ -25,7 +25,6 @@ public function getUserCount(): int
 ```
 
 This works perfectly, but there's a subtle inefficiency: **the cache is accessed twice** when the key exists.
-
 Looking at Laravel Telescope, you'll see:
 
 ```
@@ -44,6 +43,7 @@ public function getUserCountOptimized(): int
     $cacheKey = 'user-count';
     $cacheTtl = Carbon::now()->addMinutes(10);
 
+    // Good: only one cache op
     $cachedValue = Cache::get($cacheKey);
     
     if ($cachedValue !== null) {
@@ -78,13 +78,9 @@ Action | Key
 hit    | user-count  (line 31)
 ```
 
-## When `remember()` Just Doesn't Cut It
+## When `remember()` Isn’t Enough
 
-So, yeah - `Cache::remember()` is fine if you're just dealing with basic stuff.
-
-However, `remember()` isn't always practical.
-For complex scenarios, like caching third-party API responses with conditional logic, `remember()` may not fit.
-Here's a real-world example from a third-party API integration that needed extra hoops:
+So, yeah - `Cache::remember()` is fine if you're just dealing with basic stuff. However, `remember()` isn't always practical. For complex scenarios, like caching third-party API responses with conditional logic, `remember()` may not fit. Here's a real-world example from a third-party API integration that needed extra hoops:
 
 ```php
 /**
@@ -102,8 +98,6 @@ private function performRequest(string $endpoint, array $data = []): array
     $cacheKey = CacheKeyEnum::TEHNOMIR->key($cacheKeyParams);
     $cacheTtl = TehnomirApiEndpointEnum::getCacheTtl($endpoint);
 
-    (new ApiTehnomirCallStats())->increment();
-
     // Return the cached result first if caching is enabled
     if ($this->cacheEnabled) {
         if (Cache::tags($cacheTags)->has($cacheKey)) {
@@ -117,7 +111,6 @@ private function performRequest(string $endpoint, array $data = []): array
     // Make API call
     try {
         $response = $this->getClient()->post($endpoint, $data)->throw();
-        (new ApiTehnomirRealCallStats())->increment();
 
         $responseData = $this->responseHandler($response);
 
@@ -152,25 +145,28 @@ if ($this->cacheEnabled) {
 
 I actually ran the numbers. With huge responses:
 
-**Before (using `has()`):**
+**Before (with `has()`):**
 - About 14ms per execution
 - 47MB memory
 - 2 cache operations
 
-**After (just `get()`):**
+**After (without `has()`):**
 - Around 6ms
 - 43MB
 - Only 1 cache op
 
-Both are snappy, but hey, that's almost double the speed and less memory.
-The optimized version shows measurable improvements in both execution time and memory
-usage.
+![Cache Performance: Before vs. After](assets/chart-cache-performance.png)
+
+| Pattern      | Time | Memory | Cache Ops |
+|--------------|------|--------|-----------|
+| With `has()` | 14ms | 47MB   | 2         |
+| Without      | 6ms  | 43MB   | 1         |
+
+Both are snappy, but hey, that's almost double the speed and less memory. The optimized version shows measurable improvements in both execution time and memory usage.
 
 ## What's the Point?
 
-**Avoid unnecessary `Cache::has()` or `Cache::missing()` calls** when you immediately follow them with `Cache::get()`.
-Each cache operation has overhead, and eliminating redundant calls improves performance, especially when dealing with
-large cached values.
+**Avoid unnecessary `Cache::has()` or `Cache::missing()` calls** when you immediately follow them with `Cache::get()`. Each cache operation has overhead, and eliminating redundant calls improves performance, especially when dealing with large cached values.
 
 The pattern is simple:
 
@@ -178,6 +174,6 @@ The pattern is simple:
 2. Check if it's `null`
 3. Proceed accordingly
 
-Tiny change, but it makes a difference, especially if your app's busy or you're working with big caches.
+It’s a tiny change, but when multiplied across thousands of requests, the difference is real. One less cache call per request means faster responses and lower memory usage — for free.
 
 Ever run into cache weirdness or found other sneaky optimizations in Laravel? Drop your stories below.
