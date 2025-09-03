@@ -1,0 +1,1 @@
+# Laravel Cache Tip: Avoid Redundant has/missing Calls
