@@ -40,4 +40,4 @@ This article explains a common inefficiency in Laravel cache usage: calling `Cac
 
 ## Read the Full Article
 
-[Laravel Cache Tip: Avoid Redundant has/missing Calls](./1-article.md)
+[Laravel Cache Tip: Avoid Redundant has/missing Calls](https://dev.to/tegos/laravel-cache-tip-avoid-redundant-hasmissing-calls-4hi1)

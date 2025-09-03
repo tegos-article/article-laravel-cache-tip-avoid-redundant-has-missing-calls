@@ -78,7 +78,7 @@ Action | Key
 hit    | user-count  (line 31)
 ```
 
-## When `remember()` Isn’t Enough
+## When `remember()` Isn't Enough
 
 So, yeah - `Cache::remember()` is fine if you're just dealing with basic stuff. However, `remember()` isn't always practical. For complex scenarios, like caching third-party API responses with conditional logic, `remember()` may not fit. Here's a real-world example from a third-party API integration that needed extra hoops:
 
@@ -143,7 +143,7 @@ if ($this->cacheEnabled) {
 
 ## So, How Much Faster?
 
-I actually ran the numbers. With huge responses:
+I actually ran the numbers. With huge api responses:
 
 **Before (with `has()`):**
 - About 14ms per execution
@@ -174,6 +174,6 @@ The pattern is simple:
 2. Check if it's `null`
 3. Proceed accordingly
 
-It’s a tiny change, but when multiplied across thousands of requests, the difference is real. One less cache call per request means faster responses and lower memory usage — for free.
+It's a tiny change, but when multiplied across thousands of requests, the difference is real. One less cache call per request means faster responses and lower memory usage - for free.
 
 Ever run into cache weirdness or found other sneaky optimizations in Laravel? Drop your stories below.
