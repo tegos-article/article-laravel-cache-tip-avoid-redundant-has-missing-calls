@@ -89,14 +89,14 @@ So, yeah - `Cache::remember()` is fine if you're just dealing with basic stuff. 
 private function performRequest(string $endpoint, array $data = []): array
 {
     $cacheKeyParams = ['endpoint' => $endpoint, ...$data];
-    $cacheTags = [CacheKeyEnum::TEHNOMIR->tag()];
+    $cacheTags = [CacheKeyEnum::TM->tag()];
 
     if (isset($cacheKeyParams['code'])) {
         $cacheTags[] = CacheKeyEnum::SEARCH_ARTICLE->tag([$cacheKeyParams['code']]);
     }
 
-    $cacheKey = CacheKeyEnum::TEHNOMIR->key($cacheKeyParams);
-    $cacheTtl = TehnomirApiEndpointEnum::getCacheTtl($endpoint);
+    $cacheKey = CacheKeyEnum::TM->key($cacheKeyParams);
+    $cacheTtl = TmApiEndpointEnum::getCacheTtl($endpoint);
 
     // Return the cached result first if caching is enabled
     if ($this->cacheEnabled) {
@@ -127,8 +127,8 @@ private function performRequest(string $endpoint, array $data = []): array
 
 This method handles monster-sized API responses (e.g., 1MB JSON) and logs two cache hits:
 
-- **hit**: `tehnomir|endpoint=pricesearch|...` (line 114)
-- **hit**: `tehnomir|endpoint=pricesearch|...` (line 115)
+- **hit**: `tm|endpoint=pricesearch|...` (line 114)
+- **hit**: `tm|endpoint=pricesearch|...` (line 115)
 
 You can optimize it by removing the `has` check:
 
