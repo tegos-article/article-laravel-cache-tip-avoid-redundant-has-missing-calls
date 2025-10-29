@@ -1,33 +1,37 @@
-# Laravel Cache Tip: Avoid Redundant has/missing Calls
+# Laravel Cache Tip: Avoid Redundant `has` / `missing` Calls
 
 ![Laravel Cache Tip: Avoid Redundant has/missing Calls](assets/poster.jpg)
 
-This article explains a common inefficiency in Laravel cache usage: calling `Cache::has()` or `Cache::missing()` immediately before `Cache::get()`. That pattern results in **two cache operations instead of one**, adding unnecessary overhead.
+Calling `Cache::has()` or `Cache::missing()` immediately before `Cache::get()` in Laravel is **inefficient**: it results in **two cache operations instead of one**, adding unnecessary overhead.
 
-## Key Points
+This guide shows how to optimize your cache usage.
 
-- ❌ **Inefficient**
-  ```php
-  if (Cache::has($key)) {
-      return Cache::get($key);
+---
 
-  }
-  ````
+## ❌ Inefficient Example
 
-* ✅ **Optimized**
+```php
+if (Cache::has($key)) {
+    return Cache::get($key);
+}
+````
 
-  ```php
-  $value = Cache::get($key);
-  if ($value !== null) {
-      return $value;
-  }
-  ```
+## ✅ Optimized Example
 
-* ✅ Or use `Cache::remember()` when possible:
+```php
+$value = Cache::get($key);
+if ($value !== null) {
+    return $value;
+}
+```
 
-  ```php
-  Cache::remember($key, 600, fn () => User::count());
-  ```
+## ✅ Use `Cache::remember()` When Possible
+
+```php
+Cache::remember($key, 600, fn() => User::count());
+```
+
+---
 
 ## Benchmarks
 
@@ -36,8 +40,8 @@ This article explains a common inefficiency in Laravel cache usage: calling `Cac
 | With `has()` | 14ms | 47MB   | 2         |
 | Without      | 6ms  | 43MB   | 1         |
 
-👉 One less cache call per request = faster responses + lower memory usage.
+> One less cache call per request = faster responses + lower memory usage.
 
-## Read the Full Article
+## 📎 Read the Full Article
 
 [Laravel Cache Tip: Avoid Redundant has/missing Calls](https://dev.to/tegos/laravel-cache-tip-avoid-redundant-hasmissing-calls-4hi1)
